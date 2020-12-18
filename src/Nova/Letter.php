@@ -4,10 +4,11 @@ namespace Zareismail\Chapar\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
-use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphTo, MorphMany};  
+use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
 use Zareismail\NovaPolicy\Nova\Role;  
+use Zareismail\Fields\MorphTo;  
 use Zareismail\Chapar\Contracts\Recipient;  
 
 class Letter extends Resource
