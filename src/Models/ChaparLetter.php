@@ -176,7 +176,7 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
      */
     public function scopeNotTypeOf($query, $recipient)
     {
-        return $query->where($query->getQualifiedRecipientTypeColumn(), '!=', $recipient);
+        return $query->where($this->getQualifiedRecipientTypeColumn(), '!=', $recipient);
     }
 
     public function registerMediaCollections(): void
