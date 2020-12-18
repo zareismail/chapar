@@ -116,8 +116,12 @@ class Letter extends Resource
      */
     public function cards(Request $request)
     {
-        return [
+        return [ 
+            Metrics\LettersPerDay::make(),
+
             Metrics\LettersPerRecipients::make(),
+
+            Metrics\SubjectsPerDay::make(),
         ];
     }
 }
