@@ -17,6 +17,13 @@ class Reply extends Action
     public $withoutActionEvents = true;
 
     /**
+     * Determine where the action redirection should be without confirmation.
+     *
+     * @var bool
+     */
+    public $withoutConfirmation = true;
+
+    /**
      * Perform the action on the given models.
      *
      * @param  \Laravel\Nova\Fields\ActionFields  $fields

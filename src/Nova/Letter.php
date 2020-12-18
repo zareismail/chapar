@@ -4,7 +4,7 @@ namespace Zareismail\Chapar\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
-use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphTo as NovaMorphTo, MorphMany};  
+use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
 use Zareismail\NovaPolicy\Nova\Role;  
@@ -65,21 +65,13 @@ class Letter extends Resource
                 ->searchable()
                 ->inverse('letters')
                 ->readonly()
-                ->sortable(),  
+                ->sortable(),   
 
-            $this->when($this->isReplyRequest($request), function() use ($request) {
-                return NovaMorphTo::make(__('Recipient'), 'recipient')
-                            ->types($recipients = static::recipients($request)->all())
-                            ->withoutTrashed()
-                            ->searchable()
-                            ->inverse('replies');
-            }, function() use ($request) {
-                return MorphTo::make(__('Recipient'), 'recipient')
+            MorphTo::make(__('Recipient'), 'recipient')
                         ->types($recipients = static::recipients($request)->all())
                         ->withoutTrashed()
                         ->searchable()
-                        ->inverse('letters');
-            }), 
+                        ->inverse('letters'),
 
             Trix::make(__('Letter Details'), 'details')
                 ->required()
