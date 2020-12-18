@@ -106,4 +106,17 @@ class Letter extends Resource
             return $resource::newModel() instanceof Recipient;
         });
     }
+
+    /**
+     * Get the cards available on the entity.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function cards(Request $request)
+    {
+        return [
+            Metrics\LettersPerRecipients::make(),
+        ];
+    }
 }

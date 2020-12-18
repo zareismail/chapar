@@ -91,6 +91,94 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
         return boolval($this->getConfig('prevent_reply'));
     }
 
+    /**
+     * Query where that is a reply.
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @return \Illuminate\Database\Eloquent\Builder        
+     */
+    public function scopeReply($query)
+    {
+        return $query->typeOf(static::class)->haveRecipient();
+    }
+
+    /**
+     * Query where that is not a reply.
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @return \Illuminate\Database\Eloquent\Builder        
+     */
+    public function scopeRoot($query)
+    {
+        return $query->notTypeOf(static::class);
+    } 
+
+    /**
+     * Query where doesn`t have recipiant
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @return \Illuminate\Database\Eloquent\Builder   
+     */
+    public function scopeDoesntHaveRecipient($query)
+    {
+        return $query->whereNull($this->getQualifiedRecipientIdColumn());
+    } 
+
+    /**
+     * Query where have recipiant
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @return \Illuminate\Database\Eloquent\Builder   
+     */
+    public function scopeHaveRecipient($query)
+    {
+        return $query->whereNotNull($query->getQualifiedRecipientIdColumn());
+    }
+
+    /**
+     * Return qulified name of recipiant_type column.
+     *  
+     * @return string
+     */
+    public function getQualifiedRecipientTypeColumn()
+    {
+        return $this->qualifyColumn('recipient_type');
+    } 
+
+    /**
+     * Return qulified name of recipiant_id column.
+     *  
+     * @return string
+     */
+    public function getQualifiedRecipientIdColumn()
+    {
+        return $this->qualifyColumn('recipient_id');
+    }
+
+    /**
+     * Query where that is not a reply.
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @param  string $recipient
+     * @return \Illuminate\Database\Eloquent\Builder        
+     */
+    public function scopeTypeOf($query, $recipient)
+    {
+        return $query->whereRecipientType($recipient);
+    }
+
+    /**
+     * Query where that is not a reply.
+     * 
+     * @param  \Illuminate\Database\Eloquent\Builder $query 
+     * @param  string $recipient
+     * @return \Illuminate\Database\Eloquent\Builder        
+     */
+    public function scopeNotTypeOf($query, $recipient)
+    {
+        return $query->where($query->getQualifiedRecipientTypeColumn(), '!=', $recipient);
+    }
+
     public function registerMediaCollections(): void
     { 
         $this->addMediaCollection('attachments');
