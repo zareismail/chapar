@@ -21,9 +21,14 @@ class CreateChaparSubjectsTable extends Migration
         });
 
         Schema::table('chapar_letters', function (Blueprint $table) {
-            $table->foreignId('subject_id'); 
-            $table->dropColumn('subject');   
+            $table->foreignId('subject_id')->nullable();     
         });
+
+        if(Schema::hasColumn('chapar_letters', 'subject')) { 
+            Schema::table('chapar_letters', function (Blueprint $table) { 
+                $table->dropColumn('subject'); 
+            });
+        }
     }
 
     /**

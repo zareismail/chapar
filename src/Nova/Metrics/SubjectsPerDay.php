@@ -50,6 +50,6 @@ class SubjectsPerDay extends Trend
      */
     public function uriKey()
     {
-        return 'letters-per-day';
+        return 'subjects-per-day';
     }
 }

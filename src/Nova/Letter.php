@@ -4,7 +4,7 @@ namespace Zareismail\Chapar\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
-use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany};  
+use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphTo as NovaMorphTo, MorphMany};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
 use Zareismail\NovaPolicy\Nova\Role;  
@@ -25,7 +25,7 @@ class Letter extends Resource
      *
      * @var array
      */
-    public static $with = ['auth', 'subject'];
+    public static $with = ['auth', 'subject', 'recipient'];
 
     /**
      * Get the fields displayed by the resource.
@@ -36,26 +36,50 @@ class Letter extends Resource
     public function fields(Request $request)
     {
     	return [
-    		ID::make(), 
+    		ID::make()->sortable(), 
 
-            BelongsTo::make(__('Subject'), 'subject', Subject::class)
-                ->required()
-                ->rules('required')
-                ->showCreateRelationButton()
-                ->withoutTrashed(),
+            $this->when($this->isReply() || $this->isReplyRequest($request), function() use ($request) { 
+                return Text::make(__('Subject'), 'subject_id')
+                            ->readonly()
+                            ->resolveUsing(function() use ($request) {
+                                if(is_null($this->recipient)) { 
+                                    return __('Reply to :letter', [
+                                        'letter' => $request->findParentResourceOrFail()->title(),
+                                    ]);
+                                }
+                            })
+                            ->fillUsing(function() {})
+                            ->sortable();
+            }, function() use ($request) { 
+                return BelongsTo::make(__('Subject'), 'subject', Subject::class)
+                            ->required()
+                            ->rules('required')
+                            ->showCreateRelationButton()
+                            ->withoutTrashed()
+                            ->sortable();
+            }),
 
             BelongsTo::make(__('From'), 'auth', User::class)
                 ->withoutTrashed()
                 ->default($request->user()->getKey())
                 ->searchable()
                 ->inverse('letters')
-                ->readonly(),  
+                ->readonly()
+                ->sortable(),  
 
-            MorphTo::make(__('Recipient'), 'recipient')
-                ->types($recipients = static::recipients($request)->all())
-                ->withoutTrashed()
-                ->searchable()
-                ->inverse('letters'),
+            $this->when($this->isReplyRequest($request), function() use ($request) {
+                return NovaMorphTo::make(__('Recipient'), 'recipient')
+                            ->types($recipients = static::recipients($request)->all())
+                            ->withoutTrashed()
+                            ->searchable()
+                            ->inverse('replies');
+            }, function() use ($request) {
+                return MorphTo::make(__('Recipient'), 'recipient')
+                        ->types($recipients = static::recipients($request)->all())
+                        ->withoutTrashed()
+                        ->searchable()
+                        ->inverse('letters');
+            }), 
 
             Trix::make(__('Letter Details'), 'details')
                 ->required()
@@ -64,6 +88,7 @@ class Letter extends Resource
 
             Boolean::make(__('Prevent Reply'), 'config->prevent_reply')
                 ->default(false)
+                ->sortable()
                 ->canSee(function($request) {
                     return $request->user()->can('preventReply', static::newModel());
                 }),
@@ -92,7 +117,7 @@ class Letter extends Resource
      */
     public function title()
     {
-        return optional($this->subject)->label.':'.$this->auth->email;
+        return optional($this->subject)->label.':'.optional($this->auth)->email;
     }
 
     /**
@@ -106,6 +131,15 @@ class Letter extends Resource
         return Nova::authorizedResources($request)->filter(function($resource) {
             return $resource::newModel() instanceof Recipient;
         });
+    }
+
+    public function isReplyRequest(Request $request)
+    {
+        if($viaResource = $request->viaResource()) {
+            return $viaResource::newModel() instanceof Recipient;
+        }
+
+        return false;
     }
 
     /**
@@ -122,6 +156,23 @@ class Letter extends Resource
             Metrics\LettersPerRecipients::make(),
 
             Metrics\SubjectsPerDay::make(),
+        ];
+    }
+
+    /**
+     * Get the actions available on the entity.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function actions(Request $request)
+    {
+        return [
+            Actions\Reply::make()
+                ->onlyOnTableRow()
+                ->canSee(function ($request) { 
+                    return ! optional($this->resource)->replyBlocked();
+                }),
         ];
     }
 }

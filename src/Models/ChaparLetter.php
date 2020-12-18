@@ -79,7 +79,17 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
     public function letters()
     { 
         return $this->replies();
-    } 
+    }   
+
+    /**
+     * Determin if is a reply letter.
+     * 
+     * @return boolean
+     */
+    public function isReply()
+    {
+        return ! is_null($this->recipient_id) && $this->recipient_type === static::class;
+    }
 
     /**
      * Determine if prevented the reply.
