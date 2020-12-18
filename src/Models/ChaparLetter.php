@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Zareismail\NovaContracts\Models\AuthorizableModel;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\HasMedia\HasMedia;
+use Zareismail\Contracts\Concerns\InteractsWithConfigs;
 use Zareismail\Chapar\Contracts\Recipient;
 
 class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
 {  
-    use HasMediaTrait, SoftDeletes;
+    use HasMediaTrait, SoftDeletes, InteractsWithConfigs;
 
     /**
      * The attributes that should be cast.
@@ -69,6 +70,16 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
     { 
         return $this->replies();
     } 
+
+    /**
+     * Determine if prevented the reply.
+     * 
+     * @return bool
+     */
+    public function replyBlocked()
+    {
+        return boolval($this->getConfig('prevent_reply'));
+    }
 
     public function registerMediaCollections(): void
     { 

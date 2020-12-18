@@ -4,7 +4,7 @@ namespace Zareismail\Chapar\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
-use Laravel\Nova\Fields\{ID, Text, Trix, BelongsTo, MorphTo, MorphMany};  
+use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphTo, MorphMany};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
 use Zareismail\NovaPolicy\Nova\Role;  
@@ -59,6 +59,12 @@ class Letter extends Resource
                 ->rules('required')
                 ->withFiles('public'),
 
+            Boolean::make(__('Prevent Reply'), 'config->prevent_reply')
+                ->default(false)
+                ->canSee(function($request) {
+                    return $request->user()->can('preventReply', static::newModel());
+                }),
+
             Medialibrary::make(__('Attachments'), 'attachments')
                 ->autouploading()
                 ->hideFromIndex()
@@ -70,7 +76,9 @@ class Letter extends Resource
                     ];
                 }),
 
-            MorphMany::make(__('Replies'), 'replies', static::class),
+            $this->when(! $this->replyBlocked(), function() {
+                return MorphMany::make(__('Replies'), 'replies', static::class);
+            }),
     	];
     }
 
