@@ -20,7 +20,7 @@ abstract class Resource extends BaseResource
      *
      * @var string
      */
-    public static $title = 'subject';
+    public static $title = 'label';
 
     /**
      * The relationships that should be eager loaded when performing an index query.
@@ -87,4 +87,14 @@ abstract class Resource extends BaseResource
     {  
         return  parent::relatableQuery($request, $query);
     } 
+
+    /**
+     * Get the URI key for the resource.
+     *
+     * @return string
+     */
+    public static function uriKey()
+    {
+        return 'chapar-'. parent::uriKey();
+    }
 }

@@ -36,10 +36,20 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
 	 * 
 	 * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
 	 */
-	public function recipient()
+	public function subject()
 	{ 
-		return $this->morphTo();
+		return $this->belongsTo(ChaparSubject::class);
 	} 
+
+    /**
+     * Query the related Recipient.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function recipient()
+    { 
+        return $this->morphTo();
+    } 
 
     /**
      * Query the related HasMany.

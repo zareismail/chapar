@@ -24,7 +24,7 @@ class Letter extends Resource
      *
      * @var array
      */
-    public static $with = ['auth'];
+    public static $with = ['auth', 'subject'];
 
     /**
      * Get the fields displayed by the resource.
@@ -36,6 +36,12 @@ class Letter extends Resource
     {
     	return [
     		ID::make(), 
+
+            BelongsTo::make(__('Subject'), 'subject', Subject::class)
+                ->required()
+                ->rules('required')
+                ->showCreateRelationButton()
+                ->withoutTrashed(),
 
             BelongsTo::make(__('From'), 'auth', User::class)
                 ->withoutTrashed()
@@ -49,10 +55,6 @@ class Letter extends Resource
                 ->withoutTrashed()
                 ->searchable()
                 ->inverse('letters'),
-
-    		Text::make(__('Letter Subject'), 'subject')
-    			->required()
-    			->rules('required'),
 
             Trix::make(__('Letter Details'), 'details')
                 ->required()
@@ -80,6 +82,16 @@ class Letter extends Resource
                 return MorphMany::make(__('Replies'), 'replies', static::class);
             }),
     	];
+    }
+
+    /**
+     * Get the value that should be displayed to represent the resource.
+     *
+     * @return string
+     */
+    public function title()
+    {
+        return optional($this->subject)->label.':'.$this->auth->email;
     }
 
     /**

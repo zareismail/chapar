@@ -16,7 +16,6 @@ class CreateChaparLettersTable extends Migration
         Schema::create('chapar_letters', function (Blueprint $table) {
             $table->id(); 
             $table->auth();  
-            $table->labeling('subject');
             $table->text('details')->nullable(); 
             $table->morphs('recipient');    
             $table->timestamp('destroy_at')->nullable();

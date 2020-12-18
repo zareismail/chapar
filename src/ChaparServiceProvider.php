@@ -14,6 +14,7 @@ class ChaparServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Models\ChaparLetter::class => Policies\Letter::class, 
+        Models\ChaparSubject::class => Policies\Subject::class, 
     ];
 
     /**
@@ -47,6 +48,7 @@ class ChaparServiceProvider extends ServiceProvider
     {
         LaravelNova::resources([
             Nova\Letter::class, 
+            Nova\Subject::class, 
         ]);
     }
 }
