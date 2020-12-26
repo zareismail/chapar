@@ -1,6 +1,6 @@
 <?php
 
-namespace Zareismail\Hafiz\Concerns; 
+namespace Zareismail\Chapar\Concerns; 
 
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Zareismail\Chapar\Models\ChaparLetter;
