@@ -8,18 +8,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 
 class Policy
 {
-    use HandlesAuthorization; 
-
-    /**
-     * Determine whether the user can view any resource.
-     *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable $user
-     * @return mixed
-     */
-    public function viewAny(Authenticatable $user)
-    {
-        return $user->isDeveloper();
-    }
+    use HandlesAuthorization;  
 
     /**
      * Determine whether the user can view the resource
