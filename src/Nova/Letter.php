@@ -4,6 +4,7 @@ namespace Zareismail\Chapar\Nova;
 
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
+use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
@@ -139,5 +140,20 @@ class Letter extends Resource
                     return ! optional($this->resource)->replyBlocked();
                 }),
         ];
+    }
+
+    /**
+     * Build an "index" query for the given resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function indexQuery(NovaRequest $request, $query)
+    {
+        return parent::indexQuery($request, $query)->orWhere(function($query) use ($request) {
+            $query->where('recipient_type', User::newModel()->getMorphClass())
+                  ->where('recipient_id', $request->user()->id);
+        });;
     }
 }
