@@ -62,7 +62,7 @@ class Letter extends Resource
                     ]) : null
                 ])),
 
-            Trix::make(__('Letter Details'), 'details')
+            Trix::make(__('Letter Details'), 'message')
                 ->required()
                 ->rules('required')
                 ->withFiles('public'),
