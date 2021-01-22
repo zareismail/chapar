@@ -25,16 +25,7 @@ class Letter extends Resource
      *
      * @var array
      */
-    public static $with = ['auth', 'subject', 'recipient'];
-
-    /**
-     * The columns that should be searched.
-     *
-     * @var array
-     */
-    public static $search = [
-        'details'
-    ];
+    public static $with = ['auth', 'recipient'];
 
     /**
      * Get the fields displayed by the resource.
@@ -43,30 +34,9 @@ class Letter extends Resource
      * @return array
      */
     public function fields(Request $request)
-    {
+    { 
     	return [
-    		ID::make()->sortable(), 
-
-            $this->when($this->isReply() || $this->isReplyRequest($request), function() use ($request) { 
-                return Text::make(__('Subject'), 'subject_id')
-                            ->readonly()
-                            ->resolveUsing(function() use ($request) {
-                                if(is_null($this->recipient)) { 
-                                    return __('Reply to :letter', [
-                                        'letter' => $request->findParentResourceOrFail()->title(),
-                                    ]);
-                                }
-                            })
-                            ->fillUsing(function() {})
-                            ->sortable();
-            }, function() use ($request) { 
-                return BelongsTo::make(__('Subject'), 'subject', Subject::class)
-                            ->required()
-                            ->rules('required')
-                            ->showCreateRelationButton()
-                            ->withoutTrashed()
-                            ->sortable();
-            }),
+    		ID::make()->sortable(),  
 
             BelongsTo::make(__('From'), 'auth', User::class)
                 ->withoutTrashed()
@@ -78,9 +48,19 @@ class Letter extends Resource
 
             MorphTo::make(__('Recipient'), 'recipient')
                         ->types($recipients = static::recipients($request)->all())
-                        ->withoutTrashed()
-                        ->searchable()
+                        ->withoutTrashed() 
                         ->inverse('letters'),
+
+            Text::make(__('Subject'), 'subject') 
+                ->sortable()
+                ->required()
+                ->rules('required')
+                ->readonly($this->isReplyRequest($request) && $request->isMethod('get'))
+                ->withMeta(array_filter([
+                    'value' => $this->isReplyRequest($request) ? __('Replied to: :subject', [
+                        'subject' => $request->findParentResourceOrFail()->title()
+                    ]) : null
+                ])),
 
             Trix::make(__('Letter Details'), 'details')
                 ->required()
@@ -109,17 +89,7 @@ class Letter extends Resource
                 return MorphMany::make(__('Replies'), 'replies', static::class);
             }),
     	];
-    }
-
-    /**
-     * Get the value that should be displayed to represent the resource.
-     *
-     * @return string
-     */
-    public function title()
-    {
-        return optional($this->subject)->label.':'.optional($this->auth)->email;
-    }
+    } 
 
     /**
      * Return Nova's Recipient resources.
@@ -135,12 +105,8 @@ class Letter extends Resource
     }
 
     public function isReplyRequest(Request $request)
-    {
-        if($viaResource = $request->viaResource()) {
-            return $viaResource::newModel() instanceof Recipient;
-        }
-
-        return false;
+    {  
+        return $request->viaResource() === static::class;
     }
 
     /**
@@ -154,9 +120,7 @@ class Letter extends Resource
         return [ 
             Metrics\LettersPerDay::make(),
 
-            Metrics\LettersPerRecipients::make(),
-
-            Metrics\SubjectsPerDay::make(),
+            Metrics\LettersPerRecipients::make(), 
         ];
     }
 

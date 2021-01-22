@@ -1,11 +1,12 @@
 <?php
 
 namespace Zareismail\Chapar;
- 
+
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Nova\Nova as LaravelNova; 
 
-class ChaparServiceProvider extends ServiceProvider
+class ChaparServiceProvider extends ServiceProvider implements DeferrableProvider
 {
     /**
      * The policy mappings for the application.
@@ -14,21 +15,7 @@ class ChaparServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Models\ChaparLetter::class => Policies\Letter::class, 
-        Models\ChaparSubject::class => Policies\Subject::class, 
-    ];
-
-    /**
-     * Bootstrap any application services.
-     *
-     * @return void
-     */
-    public function boot()
-    {  
-        $this->loadJsonTranslationsFrom(__DIR__.'/../resources/lang');
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations'); 
-        LaravelNova::serving([$this, 'servingNova']);
-        $this->registerPolicies();
-    } 
+    ]; 
 
     /**
      * Register any application services.
@@ -36,19 +23,34 @@ class ChaparServiceProvider extends ServiceProvider
      * @return void
      */
     public function register()
-    {
+    { 
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations'); 
+        $this->registerPolicies();
+        LaravelNova::resources([
+            Nova\Letter::class,
+        ]);  
     } 
+ 
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [];
+    }
 
     /**
-     * Register any Nova services.
+     * Get the events that trigger this service provider to register.
      *
-     * @return void
+     * @return array
      */
-    public function servingNova()
+    public function when()
     {
-        LaravelNova::resources([
-            Nova\Letter::class, 
-            Nova\Subject::class, 
-        ]);
+        return [
+            \Laravel\Nova\Events\ServingNova::class,
+            \Illuminate\Console\Events\ArtisanStarting::class,
+        ];
     }
 }

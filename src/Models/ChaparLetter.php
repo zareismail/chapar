@@ -29,17 +29,7 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
     protected static function boot()
     {
         parent::boot(); 
-    } 
-
-	/**
-	 * Query the related Recipient.
-	 * 
-	 * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-	 */
-	public function subject()
-	{ 
-		return $this->belongsTo(ChaparSubject::class);
-	} 
+    }  
 
     /**
      * Query the related Recipient.

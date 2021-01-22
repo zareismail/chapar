@@ -20,7 +20,7 @@ abstract class Resource extends BaseResource
      *
      * @var string
      */
-    public static $title = 'label';
+    public static $title = 'subject';
 
     /**
      * The relationships that should be eager loaded when performing an index query.
@@ -35,7 +35,7 @@ abstract class Resource extends BaseResource
      * @var array
      */
     public static $search = [
-        'id', 'label'
+        'subject', 'details'
     ];
 
     /**
