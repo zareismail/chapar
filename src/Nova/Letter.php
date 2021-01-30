@@ -140,7 +140,7 @@ class Letter extends Resource
                     return ! optional($this->resource)->replyBlocked();
                 }),
         ];
-    }
+    } 
 
     /**
      * Build an "index" query for the given resource.
@@ -151,9 +151,12 @@ class Letter extends Resource
      */
     public static function indexQuery(NovaRequest $request, $query)
     {
-        return parent::indexQuery($request, $query)->orWhere(function($query) use ($request) {
-            $query->where('recipient_type', User::newModel()->getMorphClass())
-                  ->where('recipient_id', $request->user()->id);
-        });;
+        return parent::indexQuery($request, $query)
+                    ->when(static::shouldAuthenticate($request), function($query) use ($request) {
+                        $query->orWhere(function($query) use ($request) {
+                            $query->where('recipient_type', User::newModel()->getMorphClass())
+                                  ->where('recipient_id', $request->user()->id);
+                        });
+                    });
     }
 }
