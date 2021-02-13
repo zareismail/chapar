@@ -138,6 +138,9 @@ class Letter extends Resource
                 ->onlyOnTableRow()
                 ->canSee(function ($request) { 
                     return ! optional($this->resource)->replyBlocked();
+                })
+                ->canRun(function ($request) { 
+                    return $request->user()->can('create', static::newModel());
                 }),
         ];
     } 
@@ -153,10 +156,39 @@ class Letter extends Resource
     {
         return parent::indexQuery($request, $query)
                     ->when(static::shouldAuthenticate($request), function($query) use ($request) {
+                        $morphs = static::recipients($request)->map(function($recipient) {
+                            return $recipient::$model;
+                        });
+
                         $query->orWhere(function($query) use ($request) {
                             $query->where('recipient_type', User::newModel()->getMorphClass())
                                   ->where('recipient_id', $request->user()->id);
+                        })
+                        ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) {
+                            if(\Zareismail\NovaPolicy\Helper::isOwnable($type)) {
+                                $query->authenticate();
+                            }
+                        });
+                    })
+                    ->when($request->viaResource() === static::class, function($query) use ($request) { 
+                        $query->whereHas('repliedTo', function($query) use ($request) {
+                            $query->whereKey($request->viaResourceId);
                         });
                     });
+    }
+
+    /**
+     * Determine if the current user can view the given resource.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $ability
+     * @return bool
+     */
+    public function authorizedTo(Request $request, $ability)
+    {
+        return parent::authorizedTo($request, $ability) || 
+            $ability === 'view' && (
+                $request->user()->can('view', $this->recipient) || $this->recipient->is($request->user())
+            );
     }
 }
