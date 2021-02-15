@@ -16,7 +16,7 @@ class LettersPerDay extends Trend
      */
     public function calculate(NovaRequest $request)
     {
-        return $this->countByDays($request, ChaparLetter::class);
+        return $this->countByDays($request, ChaparLetter::authenticate());
     }
 
     /**
