@@ -157,17 +157,16 @@ class Letter extends Resource
         return parent::indexQuery($request, $query)
                     ->when(static::shouldAuthenticate($request), function($query) use ($request) {
                         $morphs = static::recipients($request)->map(function($recipient) {
-                            return $recipient::$model;
-                        });
+                            return \Zareismail\NovaPolicy\Helper::isOwnable($recipient::$model) 
+                                        ? $recipient::$model : null;
+                        })->filter();
 
                         $query->orWhere(function($query) use ($request) {
                             $query->where('recipient_type', User::newModel()->getMorphClass())
                                   ->where('recipient_id', $request->user()->id);
                         })
                         ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) {
-                            if(\Zareismail\NovaPolicy\Helper::isOwnable($type)) {
-                                $query->authenticate();
-                            }
+                            $query->authenticate();
                         });
                     })
                     ->when($request->viaResource() === static::class, function($query) use ($request) { 
