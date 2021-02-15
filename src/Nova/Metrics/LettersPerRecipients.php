@@ -17,7 +17,7 @@ class LettersPerRecipients extends Partition
      */
     public function calculate(NovaRequest $request)
     {
-        return $this->count($request, ChaparLetter::root(), 'recipient_type')
+        return $this->count($request, ChaparLetter::root()->authenticate(), 'recipient_type')
                     ->label(function($label) { 
                         if($resource = Nova::resourceForModel($label)) {
                             return $resource::label();
