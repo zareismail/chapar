@@ -26,7 +26,7 @@ class Letter extends Resource
      *
      * @var array
      */
-    public static $with = ['auth', 'recipient'];
+    public static $with = [];
 
     /**
      * Get the fields displayed by the resource.
@@ -194,9 +194,12 @@ class Letter extends Resource
                         }
                     });
             });
-        })->with('recipient', function($morphTo) use ($morphs) {
-            $morphTo->morphWith($morphs->all());
-        });
+        })->with([
+            'auth',
+            'recipient' => function($morphTo) use ($morphs) {
+                $morphTo->morphWith($morphs->all())->withTrashed();
+            }
+        ]);
     }
 
     /**
