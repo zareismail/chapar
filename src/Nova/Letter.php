@@ -43,14 +43,13 @@ class Letter extends Resource
                 ->withoutTrashed()
                 ->default($request->user()->getKey())
                 ->searchable()
-                ->inverse('letters')
                 ->readonly()
                 ->sortable(),   
 
             MorphTo::make(__('Recipient'), 'recipient')
-                        ->types($recipients = static::recipients($request)->all())
-                        ->withoutTrashed() 
-                        ->inverse('letters'),
+                ->types($recipients = static::recipients($request)->all())
+                ->withoutTrashed() 
+                ->inverse('letters'),
 
             Text::make(__('Subject'), 'subject') 
                 ->sortable()
