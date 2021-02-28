@@ -151,28 +151,52 @@ class Letter extends Resource
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public static function indexQuery(NovaRequest $request, $query)
+    public static function indexQuerys(NovaRequest $request, $query)
     {
         return parent::indexQuery($request, $query)
-                    ->when(static::shouldAuthenticate($request), function($query) use ($request) {
-                        $morphs = static::recipients($request)->map(function($recipient) {
-                            return \Zareismail\NovaPolicy\Helper::isOwnable($recipient::$model) 
-                                        ? $recipient::$model : null;
-                        })->filter();
-
-                        $query->orWhere(function($query) use ($request) {
-                            $query->where('recipient_type', User::newModel()->getMorphClass())
-                                  ->where('recipient_id', $request->user()->id);
-                        })
-                        ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) {
-                            $query->authenticate();
-                        });
-                    })
                     ->when($request->viaResource() === static::class, function($query) use ($request) { 
                         $query->whereHas('repliedTo', function($query) use ($request) {
                             $query->whereKey($request->viaResourceId);
                         });
                     });
+    }
+
+    /**
+     * Authenticate the query for the given request.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function authenticateQuery(NovaRequest $request, $query)
+    {
+        $morphs = static::recipients($request)->map(function($recipient) {
+            return $recipient::$model;
+        });
+
+        return $query->where(function($query) use ($request, $morphs) {
+            $query->when(static::shouldAuthenticate($request), function($query) use ($request, $morphs) {
+                $query
+                    ->authenticate()
+                    ->orWhere(function($query) use ($request) {
+                        $query->where('recipient_type', User::newModel()->getMorphClass())
+                              ->where('recipient_id', $request->user()->id);
+                    })
+                    ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) use ($request) { 
+                        if($type === static::$model) {
+                            $query->authenticate(); 
+                        } elseif($type == get_class($request->user())) { 
+                            $query->whereKey($request->user()->id);
+                        } else { 
+                            forward_static_call(
+                                [Nova::resourceForModel($type), 'buildIndexQuery'], $request, $query
+                            );
+                        }
+                    });
+            });
+        })->with('recipient', function($morphTo) use ($morphs) {
+            $morphTo->morphWith($morphs->all());
+        });
     }
 
     /**
@@ -184,9 +208,12 @@ class Letter extends Resource
      */
     public function authorizedTo(Request $request, $ability)
     {
-        return parent::authorizedTo($request, $ability) || 
-            $ability === 'view' && (
-                $request->user()->can('view', $this->recipient) || $this->recipient->is($request->user())
+        return 
+            parent::authorizedTo($request, $ability) || 
+            $ability === 'view' ||
+            $ability !== 'update' && (
+                $request->user()->can('view', $this->recipient) || 
+                $this->recipient->is($request->user())
             );
     }
 }
