@@ -222,4 +222,17 @@ class Letter extends Resource
                 $this->recipient->is($request->user())
             );
     }
+
+    /**
+     * Get the filters available on the entity.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function filters(Request $request)
+    {
+        return [
+            Filters\Reply::make(),
+        ];
+    }
 }
