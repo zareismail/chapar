@@ -132,7 +132,7 @@ class ChaparLetter extends AuthorizableModel implements HasMedia, Recipient
      */
     public function scopeHaveRecipient($query)
     {
-        return $query->whereNotNull($query->getQualifiedRecipientIdColumn());
+        return $query->whereNotNull($this->getQualifiedRecipientIdColumn());
     }
 
     /**
