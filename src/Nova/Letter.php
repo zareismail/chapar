@@ -5,7 +5,7 @@ namespace Zareismail\Chapar\Nova;
 use Illuminate\Http\Request;
 use Laravel\Nova\Nova; 
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany};  
+use Laravel\Nova\Fields\{ID, Text, Boolean, Trix, BelongsTo, MorphMany, DateTime};  
 use DmitryBubyakin\NovaMedialibraryField\Fields\Medialibrary;
 use Zareismail\NovaContracts\Nova\User;  
 use Zareismail\NovaPolicy\Nova\Role;  
@@ -84,6 +84,9 @@ class Letter extends Resource
                             ->rules('required', 'min:2'),  
                     ];
                 }),
+
+            DateTime::make(__('Sent Date'), 'created_at')
+                ->exceptOnForms(),
 
             $this->when(! $this->replyBlocked(), function() {
                 return MorphMany::make(__('Replies'), 'replies', static::class);
