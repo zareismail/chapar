@@ -233,6 +233,8 @@ class Letter extends Resource
     {
         return [
             Filters\Reply::make(),
+            
+            Filters\Recipient::make(),
         ];
     }
 }
