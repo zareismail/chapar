@@ -180,15 +180,12 @@ class Letter extends Resource
         return $query->where(function($query) use ($request, $morphs) {
             $query->when(static::shouldAuthenticate($request), function($query) use ($request, $morphs) {
                 $query
-                    ->authenticate()
-                    ->orWhere(function($query) use ($request) {
-                        $query->where('recipient_type', User::newModel()->getMorphClass())
-                              ->where('recipient_id', $request->user()->id);
-                    })
+                    ->authenticate() 
                     ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) use ($request) { 
-                        if($type === static::$model) {
-                            $query->authenticate(); 
-                        } elseif($type == get_class($request->user())) { 
+                        if($type == static::$model) { 
+                            $query->where('recipient_type', User::newModel()->getMorphClass())
+                                  ->where('recipient_id', $request->user()->id);
+                        } elseif(is_subclass_of($type, get_class($request->user())) { 
                             $query->whereKey($request->user()->id);
                         } else { 
                             forward_static_call(
