@@ -185,7 +185,7 @@ class Letter extends Resource
                         if($type == static::$model) { 
                             $query->where('recipient_type', User::newModel()->getMorphClass())
                                   ->where('recipient_id', $request->user()->id);
-                        } elseif(is_subclass_of($type, get_class($request->user())) { 
+                        } elseif(is_subclass_of($type, get_class($request->user()))) { 
                             $query->whereKey($request->user()->id);
                         } else { 
                             forward_static_call(
