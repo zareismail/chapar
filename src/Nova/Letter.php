@@ -180,13 +180,14 @@ class Letter extends Resource
         return $query->where(function($query) use ($request, $morphs) {
             $query->when(static::shouldAuthenticate($request), function($query) use ($request, $morphs) {
                 $query
-                    ->authenticate() 
+                    ->authenticate()  
                     ->orWhereHasMorph('recipient', $morphs->all(), function($query, $type) use ($request) { 
-                        if($type == static::$model) { 
-                            $query->where('recipient_type', User::newModel()->getMorphClass())
-                                  ->where('recipient_id', $request->user()->id);
-                        } elseif(is_subclass_of($type, get_class($request->user()))) { 
-                            $query->whereKey($request->user()->id);
+                        if((new $type)->getMorphClass() == $request->user()->getMorphClass()) { 
+                            // If the user is recipient
+                            $query->whereKey($request->user()->getKey());
+                        } else if($type == static::$model) { 
+                            // If is letter reply
+                            $query->authenticate();
                         } else { 
                             forward_static_call(
                                 [Nova::resourceForModel($type), 'buildIndexQuery'], $request, $query
